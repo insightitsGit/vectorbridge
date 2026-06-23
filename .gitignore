@@ -55,3 +55,7 @@ coverage.xml
 
 # Jupyter
 .ipynb_checkpoints/
+
+benchmark/chroma_data/
+benchmark/*.log
+benchmark/*.txt
