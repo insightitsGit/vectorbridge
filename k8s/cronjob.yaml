@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vectorbridge-sync
+  namespace: vectorbridge
+spec:
+  schedule: "0 * * * *"    # every hour — change to your schedule
+  concurrencyPolicy: Forbid # never run two syncs at the same time
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: vectorbridge-agent
+              image: vectorbridge/agent:latest
+              env:
+                - name: VB_LICENSE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: vectorbridge-secret
+                      key: VB_LICENSE_KEY
+                - name: VB_JOB_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: vectorbridge-secret
+                      key: VB_JOB_ID
+                - name: VB_POLL_SECONDS
+                  value: "0"
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "2000m"

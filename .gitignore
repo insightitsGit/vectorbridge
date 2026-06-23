@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# VectorBridge runtime
+.vectorbridge/
+*.checkpoint.json
+
+# Benchmark data & results (large files)
+benchmark/data/
+benchmark/results/*.json
+benchmark/server_out.txt
+benchmark/server_err.txt
+benchmark/benchmark_out.txt
+benchmark/benchmark_err.txt
+
+# Secrets & credentials
+.env
+.env.*
+*.license_key
+secrets.json
+
+# Azure / cloud
+.azure/
+.env.benchmark
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/

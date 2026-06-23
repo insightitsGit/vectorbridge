@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectorBridge Dashboard</title>
+<style>
+  :root {
+    --navy: #1A365D;
+    --navy-light: #2A4A7F;
+    --gold: #9A7B3A;
+    --gold-light: #C4A052;
+    --bg: #F4F6F9;
+    --white: #FFFFFF;
+    --text: #0F1419;
+    --subtext: #3D4F5F;
+    --border: #C5CDD5;
+    --green: #22863A;
+    --red: #C0392B;
+    --success-bg: #F0FDF4;
+    --error-bg: #FEF2F2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+             background: var(--navy); display: flex; flex-direction: column;
+             padding: 0; z-index: 100; }
+  .logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo h1 { color: var(--white); font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .logo p { color: var(--gold-light); font-size: 10px; margin-top: 3px; letter-spacing: 1px; }
+  .nav { flex: 1; padding: 16px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+              color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px;
+              transition: all 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(154,123,58,0.2); color: white;
+                     border-left-color: var(--gold); }
+  .nav-item .icon { width: 18px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1);
+                    color: rgba(255,255,255,0.4); font-size: 11px; }
+
+  /* Main */
+  .main { margin-left: 220px; padding: 32px; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .page-sub { font-size: 13px; color: var(--subtext); margin-bottom: 28px; }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+           gap: 16px; margin-bottom: 28px; }
+  .card { background: var(--white); border-radius: 12px; padding: 20px;
+          border: 1px solid var(--border); }
+  .card-label { font-size: 11px; color: var(--subtext); font-weight: 600;
+                letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+  .card-value { font-size: 28px; font-weight: 700; color: var(--navy); }
+  .card-sub { font-size: 12px; color: var(--subtext); margin-top: 4px; }
+  .card.gold .card-value { color: var(--gold); }
+  .card.green .card-value { color: var(--green); }
+
+  /* Usage bar */
+  .usage-bar-wrap { background: var(--bg); border-radius: 8px; height: 10px;
+                    margin-top: 10px; overflow: hidden; }
+  .usage-bar { height: 100%; background: var(--gold); border-radius: 8px;
+               transition: width 0.5s; }
+  .usage-bar.danger { background: var(--red); }
+
+  /* Table */
+  .table-wrap { background: var(--white); border-radius: 12px; border: 1px solid var(--border);
+                overflow: hidden; margin-bottom: 24px; }
+  .table-header { padding: 16px 20px; border-bottom: 1px solid var(--border);
+                  display: flex; align-items: center; justify-content: space-between; }
+  .table-header h3 { font-size: 14px; font-weight: 600; color: var(--navy); }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--bg); padding: 10px 16px; font-size: 11px; font-weight: 700;
+       color: var(--subtext); text-transform: uppercase; letter-spacing: 0.6px;
+       text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #F0F2F5; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFBFC; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px;
+           font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--success-bg); color: var(--green); }
+  .badge-gold { background: #FFFBEB; color: var(--gold); }
+  .badge-red { background: var(--error-bg); color: var(--red); }
+  .badge-blue { background: #EFF6FF; color: #1D4ED8; }
+
+  /* Forms */
+  .form-section { background: var(--white); border-radius: 12px; padding: 24px;
+                  border: 1px solid var(--border); margin-bottom: 24px; }
+  .form-section h3 { font-size: 15px; font-weight: 600; color: var(--navy);
+                     margin-bottom: 18px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 600; color: var(--subtext); }
+  input, select { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+                  font-size: 13px; background: var(--white); color: var(--text);
+                  outline: none; transition: border-color 0.15s; }
+  input:focus, select:focus { border-color: var(--navy); }
+
+  /* Buttons */
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+         cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-gold { background: var(--gold); color: white; }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border);
+                 color: var(--subtext); }
+  .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+
+  /* Code block */
+  .code-block { background: #1E2D3D; color: #A8D8FF; border-radius: 10px;
+                padding: 16px 20px; font-family: "Fira Code", monospace; font-size: 13px;
+                line-height: 1.7; margin-top: 12px; position: relative; }
+  .code-block .comment { color: #5A7A8A; }
+  .code-block .cmd { color: #7EE8A2; }
+  .copy-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1);
+              color: white; border: none; border-radius: 6px; padding: 4px 10px;
+              font-size: 11px; cursor: pointer; }
+  .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .alert-success { background: var(--success-bg); color: var(--green); border: 1px solid #86EFAC; }
+  .alert-error { background: var(--error-bg); color: var(--red); border: 1px solid #FECACA; }
+  .alert-info { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+
+  /* Login */
+  .login-wrap { display: flex; align-items: center; justify-content: center;
+                min-height: 100vh; background: var(--navy); }
+  .login-box { background: white; border-radius: 16px; padding: 40px; width: 380px;
+               box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo h1 { font-size: 24px; font-weight: 800; color: var(--navy); }
+  .login-logo p { color: var(--subtext); font-size: 13px; margin-top: 4px; }
+  .login-box .form-group { margin-bottom: 16px; }
+  .hidden { display: none; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .form-row { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>VectorBridge</h1>
+      <p>Universal Vector Database Migration</p>
+    </div>
+    <div id="loginAlert"></div>
+    <div class="form-group">
+      <label>License Key</label>
+      <input type="text" id="loginKey" placeholder="vb_live_xxxxxxxxxxxx">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doLogin()">
+      Sign In
+    </button>
+    <p style="text-align:center;font-size:12px;color:var(--subtext);margin-top:16px">
+      No license? <a href="#" style="color:var(--navy)">Get one at vectorbridge.io</a>
+    </p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="appWrap" class="hidden">
+  <div class="sidebar">
+    <div class="logo">
+      <h1>VectorBridge</h1>
+      <p>POWERED BY CHORUS FABRIC</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('overview')">
+        <span class="icon">◈</span> Overview
+      </div>
+      <div class="nav-item" onclick="showPage('newjob')">
+        <span class="icon">＋</span> New Job
+      </div>
+      <div class="nav-item" onclick="showPage('jobs')">
+        <span class="icon">⊞</span> Jobs
+      </div>
+      <div class="nav-item" onclick="showPage('reports')">
+        <span class="icon">◎</span> Integrity Reports
+      </div>
+      <div class="nav-item" onclick="showPage('deploy')">
+        <span class="icon">⬡</span> Deploy Agent
+      </div>
+      <div class="nav-item" onclick="showPage('usage')">
+        <span class="icon">◉</span> Usage & Billing
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="orgLabel">—</div>
+      <div id="planLabel" style="color:var(--gold-light);margin-top:2px">—</div>
+      <div style="margin-top:8px;cursor:pointer;color:rgba(255,255,255,0.4)"
+           onclick="doLogout()">Sign out</div>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div id="page-overview" class="page active">
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Your migration activity and DWV usage at a glance.</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">DWV Used This Month</div>
+          <div class="card-value" id="ov-dwv-used">—</div>
+          <div class="card-sub" id="ov-dwv-limit">of — limit</div>
+          <div class="usage-bar-wrap">
+            <div class="usage-bar" id="ov-usage-bar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="card gold">
+          <div class="card-label">Total Jobs</div>
+          <div class="card-value" id="ov-jobs">—</div>
+          <div class="card-sub">all time</div>
+        </div>
+        <div class="card green">
+          <div class="card-label">Vectors Transferred</div>
+          <div class="card-value" id="ov-vectors">—</div>
+          <div class="card-sub">across all jobs</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Avg Verification Rate</div>
+          <div class="card-value" id="ov-verify">—</div>
+          <div class="card-sub">CHORUS watermark</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Recent Reports</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadOverview()">↻ Refresh</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th><th>Source</th><th>Target</th>
+              <th>Vectors</th><th>Verified</th><th>Bandwidth Savings</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ov-table-body">
+            <tr><td colspan="7" style="text-align:center;color:var(--subtext);padding:24px">
+              No reports yet. Run your first migration.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NEW JOB -->
+    <div id="page-newjob" class="page">
+      <div class="page-title">New Migration Job</div>
+      <div class="page-sub">Configure your source and target, then download the config or deploy directly.</div>
+
+      <div id="jobAlert"></div>
+
+      <div class="form-section">
+        <h3>Source Vector Database</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="srcType" onchange="updateSourceFields()">
+              <option value="pgvector">pgvector (PostgreSQL)</option>
+              <option value="chromadb">ChromaDB</option>
+              <option value="faiss">FAISS</option>
+              <option value="weaviate">Weaviate</option>
+              <option value="qdrant">Qdrant</option>
+              <option value="pinecone">Pinecone</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mode</label>
+            <select id="jobMode">
+              <option value="full">Full Migration (one-time)</option>
+              <option value="incremental">Incremental Sync</option>
+            </select>
+          </div>
+        </div>
+        <div id="srcFields"></div>
+      </div>
+
+      <div class="form-section">
+        <h3>Target Vector Database</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="tgtType" onchange="updateTargetFields()">
+              <option value="pinecone">Pinecone</option>
+              <option value="qdrant">Qdrant</option>
+              <option value="weaviate">Weaviate</option>
+              <option value="chromadb">ChromaDB</option>
+              <option value="pgvector">pgvector (PostgreSQL)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Batch Size</label>
+            <input type="number" id="batchSize" value="256" min="32" max="2048">
+          </div>
+        </div>
+        <div id="tgtFields"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="createJob()">Create Job & Download Config</button>
+        <button class="btn btn-outline" onclick="showPage('deploy')">Deploy as Docker Agent</button>
+      </div>
+
+      <div id="configOutput" class="hidden" style="margin-top:20px">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyConfig()">Copy</button>
+          <pre id="configJson"></pre>
+        </div>
+        <p style="font-size:12px;color:var(--subtext);margin-top:8px">
+          Run on your server: <code>vectorbridge run --config vb_config.json</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- JOBS -->
+    <div id="page-jobs" class="page">
+      <div class="page-title">Jobs</div>
+      <div class="page-sub">All migration jobs created under your license.</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>All Jobs</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadJobs()">↻ Refresh</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th><th>Source</th><th>Target</th>
+              <th>Mode</th><th>Created</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="jobs-table-body">
+            <tr><td colspan="6" style="text-align:center;color:var(--subtext);padding:24px">
+              No jobs yet.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="page-reports" class="page">
+      <div class="page-title">Integrity Reports</div>
+      <div class="page-sub">
+        Every vector transferred is SHA-256 watermark verified via CHORUS Fabric.
+        Every migration generates a cryptographic integrity report.
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>All Reports</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadReports()">↻ Refresh</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th><th>Source → Target</th><th>Transferred</th>
+              <th>Verified</th><th>Failed</th><th>Bandwidth Savings</th><th>Completed</th>
+            </tr>
+          </thead>
+          <tbody id="reports-table-body">
+            <tr><td colspan="7" style="text-align:center;color:var(--subtext);padding:24px">
+              No reports yet.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEPLOY -->
+    <div id="page-deploy" class="page">
+      <div class="page-title">Deploy Agent</div>
+      <div class="page-sub">Run the VectorBridge agent on your server. Vectors never leave your network.</div>
+
+      <div class="form-section">
+        <h3>Option A — Docker (Recommended)</h3>
+        <p style="font-size:13px;color:var(--subtext);margin-bottom:12px">
+          Paste this on any server where your source vector database is accessible.
+          The agent fetches its config from this dashboard automatically.
+        </p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyDocker()">Copy</button>
+          <pre id="dockerCmd"><span class="comment"># Run once (full migration)</span>
+<span class="cmd">docker run</span> --rm \
+  --network host \
+  -e <span style="color:#FFD700">VB_LICENSE_KEY</span>=<span id="d-lickey">YOUR_KEY</span> \
+  -e <span style="color:#FFD700">VB_JOB_ID</span>=<span id="d-jobid">YOUR_JOB_ID</span> \
+  vectorbridge/agent:latest
+
+<span class="comment"># Continuous sync (incremental every hour)</span>
+<span class="cmd">docker run</span> -d \
+  --name vectorbridge-agent \
+  --network host \
+  --restart unless-stopped \
+  -e <span style="color:#FFD700">VB_LICENSE_KEY</span>=<span id="d-lickey2">YOUR_KEY</span> \
+  -e <span style="color:#FFD700">VB_JOB_ID</span>=<span id="d-jobid2">YOUR_JOB_ID</span> \
+  -e <span style="color:#FFD700">VB_POLL_SECONDS</span>=3600 \
+  vectorbridge/agent:latest</pre>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Option B — Kubernetes</h3>
+        <p style="font-size:13px;color:var(--subtext);margin-bottom:12px">
+          Deploy as a K8s Job (one-time) or CronJob (scheduled sync).
+        </p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyK8s()">Copy</button>
+          <pre id="k8sCmd"><span class="comment"># Apply the secret (replace values first)</span>
+<span class="cmd">kubectl apply</span> -f k8s/secret.yaml
+
+<span class="comment"># One-time migration job</span>
+<span class="cmd">kubectl apply</span> -f k8s/deployment.yaml
+
+<span class="comment"># Hourly incremental sync</span>
+<span class="cmd">kubectl apply</span> -f k8s/cronjob.yaml
+
+<span class="comment"># Watch logs</span>
+<span class="cmd">kubectl logs</span> -f -n vectorbridge -l app=vectorbridge-agent</pre>
+        </div>
+        <p style="font-size:12px;color:var(--subtext);margin-top:8px">
+          Download K8s manifests from
+          <a href="https://github.com/insightitsGit/vectorbridge/tree/main/k8s" style="color:var(--navy)">
+            github.com/insightitsGit/vectorbridge/k8s
+          </a>
+        </p>
+      </div>
+
+      <div class="form-section">
+        <h3>Option C — Python Library</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyPython()">Copy</button>
+          <pre id="pythonCmd"><span class="cmd">pip install</span> vectorbridge
+
+<span class="comment"># Run from config file</span>
+<span class="cmd">vectorbridge run</span> --config vb_config.json
+
+<span class="comment"># Or Python API</span>
+<span style="color:#FFB86C">from</span> vectorbridge <span style="color:#FFB86C">import</span> Bridge
+bridge = Bridge.from_config(<span style="color:#F1FA8C">"vb_config.json"</span>)
+report = bridge.run()
+<span style="color:#A8D8FF">print</span>(report.summary())</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- USAGE -->
+    <div id="page-usage" class="page">
+      <div class="page-title">Usage & Billing</div>
+      <div class="page-sub">Dimension-Weighted Vector (DWV) usage. 1 DWV = 1 vector × 1 dimension.</div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Current Plan</div>
+          <div class="card-value" id="u-plan" style="font-size:20px">—</div>
+        </div>
+        <div class="card gold">
+          <div class="card-label">DWV Used</div>
+          <div class="card-value" id="u-used">—</div>
+          <div class="card-sub" id="u-limit">of — limit</div>
+          <div class="usage-bar-wrap">
+            <div class="usage-bar" id="u-bar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Usage %</div>
+          <div class="card-value" id="u-pct">—</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Pricing — Dimension-Weighted Vectors (DWV)</h3>
+        <table style="margin-top:0">
+          <thead>
+            <tr>
+              <th>Plan</th><th>Monthly DWV</th><th>Real-World Equivalent</th><th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-blue">Free</span></td>
+              <td>200M DWV</td>
+              <td>130K vectors @ 1536-dim</td>
+              <td><strong>$0</strong></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-gold">Starter</span></td>
+              <td>2B DWV</td>
+              <td>1.3M vectors @ 1536-dim</td>
+              <td><strong>$49/mo</strong></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-green">Pro</span></td>
+              <td>25B DWV</td>
+              <td>16M vectors @ 1536-dim</td>
+              <td><strong>$199/mo</strong></td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#EDE9FE;color:#7C3AED">Enterprise</span></td>
+              <td>Unlimited</td>
+              <td>Any scale</td>
+              <td><strong>$999+/mo</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--subtext);margin-top:12px">
+          DWV formula: <strong>total_vectors × embedding_dimension</strong><br>
+          Example: 1M vectors at 1536 dimensions = 1.536B DWVs = $49/mo (Starter plan)
+        </p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let LICENSE_KEY = "";
+
+const FIELD_DEFS = {
+  pgvector: [
+    ["host","Host","localhost"],["port","Port","5432"],
+    ["database","Database","mydb"],["user","User","postgres"],
+    ["password","Password",""],["table","Table","embeddings"]
+  ],
+  chromadb: [
+    ["chroma_path","Local Path (or leave blank for server)","./chroma_data"],
+    ["chroma_host","Server Host","localhost"],["chroma_port","Server Port","8000"],
+    ["collection_name","Collection","embeddings"]
+  ],
+  faiss: [
+    ["faiss_path","Index File Path","./index.faiss"],
+    ["faiss_ids_path","IDs File Path (.npy)","./ids.npy"]
+  ],
+  weaviate: [
+    ["weaviate_url","Weaviate URL","http://localhost:8080"],
+    ["weaviate_api_key","API Key (if cloud)",""],
+    ["class_name","Class Name","Embedding"]
+  ],
+  qdrant: [
+    ["qdrant_url","Qdrant URL","http://localhost:6333"],
+    ["qdrant_api_key","API Key (if cloud)",""],
+    ["collection","Collection","embeddings"]
+  ],
+  pinecone: [
+    ["api_key","Pinecone API Key",""],
+    ["index_name","Index Name","my-index"],
+    ["namespace","Namespace (optional)",""]
+  ]
+};
+
+function renderFields(containerId, type) {
+  const defs = FIELD_DEFS[type] || [];
+  const half = Math.ceil(defs.length / 2);
+  let html = '<div class="form-row">';
+  defs.forEach((f, i) => {
+    if (i === half) html += '</div><div class="form-row">';
+    const inputType = f[0].includes("password") || f[0].includes("key") ? "password" : "text";
+    html += `<div class="form-group">
+      <label>${f[1]}</label>
+      <input type="${inputType}" id="${containerId}-${f[0]}" placeholder="${f[2]}" value="${f[2]}">
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function updateSourceFields() {
+  renderFields("srcFields", document.getElementById("srcType").value);
+}
+function updateTargetFields() {
+  renderFields("tgtFields", document.getElementById("tgtType").value);
+}
+
+function getFieldValues(containerId, type) {
+  const defs = FIELD_DEFS[type] || [];
+  const obj = { type };
+  defs.forEach(f => {
+    const el = document.getElementById(`${containerId}-${f[0]}`);
+    if (el && el.value && el.value !== f[2]) obj[f[0]] = el.value;
+    else if (el) obj[f[0]] = el.value;
+  });
+  return obj;
+}
+
+async function doLogin() {
+  const key = document.getElementById("loginKey").value.trim();
+  if (!key) return;
+  try {
+    const resp = await fetch("/v1/license/validate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({license_key: key})
+    });
+    if (!resp.ok) throw new Error("Invalid license key");
+    const data = await resp.json();
+    LICENSE_KEY = key;
+    document.getElementById("orgLabel").textContent = data.org;
+    document.getElementById("planLabel").textContent = data.plan.toUpperCase();
+    document.getElementById("d-lickey").textContent = key;
+    document.getElementById("d-lickey2").textContent = key;
+    document.getElementById("loginWrap").classList.add("hidden");
+    document.getElementById("appWrap").classList.remove("hidden");
+    loadOverview();
+  } catch(e) {
+    document.getElementById("loginAlert").innerHTML =
+      `<div class="alert alert-error">${e.message}</div>`;
+  }
+}
+
+function doLogout() {
+  LICENSE_KEY = "";
+  document.getElementById("loginWrap").classList.remove("hidden");
+  document.getElementById("appWrap").classList.add("hidden");
+}
+
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  event.currentTarget.classList.add("active");
+  if (name === "overview") loadOverview();
+  if (name === "jobs") loadJobs();
+  if (name === "reports") loadReports();
+  if (name === "usage") loadUsage();
+  if (name === "newjob") { updateSourceFields(); updateTargetFields(); }
+}
+
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1)+"B";
+  if (n >= 1e6) return (n/1e6).toFixed(1)+"M";
+  if (n >= 1e3) return (n/1e3).toFixed(1)+"K";
+  return String(n);
+}
+
+async function loadOverview() {
+  try {
+    const [usageR, reportsR] = await Promise.all([
+      fetch("/v1/usage", {headers:{"x-license":LICENSE_KEY}}),
+      fetch("/v1/reports", {headers:{"x-license":LICENSE_KEY}})
+    ]);
+    const usage = await usageR.json();
+    const reports = await reportsR.json();
+
+    document.getElementById("ov-dwv-used").textContent = fmt(usage.dwv_used);
+    document.getElementById("ov-dwv-limit").textContent =
+      usage.dwv_limit > 0 ? `of ${fmt(usage.dwv_limit)} limit` : "Unlimited";
+    const bar = document.getElementById("ov-usage-bar");
+    bar.style.width = Math.min(usage.usage_pct, 100) + "%";
+    if (usage.usage_pct > 90) bar.classList.add("danger");
+
+    document.getElementById("ov-jobs").textContent = usage.jobs_count;
+    const totalVecs = reports.reduce((s,r) => s + (r.transferred||0), 0);
+    document.getElementById("ov-vectors").textContent = fmt(totalVecs);
+    const avgVerify = reports.length
+      ? (reports.reduce((s,r)=>s+(r.verification_rate_pct||0),0)/reports.length).toFixed(1)+"%"
+      : "—";
+    document.getElementById("ov-verify").textContent = avgVerify;
+
+    const tbody = document.getElementById("ov-table-body");
+    if (!reports.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--subtext);padding:24px">No reports yet.</td></tr>`;
+    } else {
+      tbody.innerHTML = reports.slice(-10).reverse().map(r => `
+        <tr>
+          <td><code style="font-size:12px">${r.job_id}</code></td>
+          <td>${r.source}</td><td>${r.target}</td>
+          <td>${fmt(r.transferred||0)}</td>
+          <td>${(r.verification_rate_pct||0).toFixed(2)}%</td>
+          <td>${(r.bandwidth_savings_x||0).toFixed(2)}×</td>
+          <td><span class="badge ${r.failed_watermark>0?'badge-red':'badge-green'}">
+            ${r.failed_watermark>0?'⚠ Issues':'✓ Clean'}</span></td>
+        </tr>`).join("");
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadJobs() {
+  try {
+    const resp = await fetch("/v1/jobs", {headers:{"x-license":LICENSE_KEY}});
+    const jobs = await resp.json();
+    const tbody = document.getElementById("jobs-table-body");
+    if (!jobs.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--subtext);padding:24px">No jobs yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = jobs.reverse().map(j => `
+      <tr>
+        <td><code style="font-size:12px">${j.job_id}</code></td>
+        <td>${j.source?.type||"—"}</td>
+        <td>${j.target?.type||"—"}</td>
+        <td>${j.mode}</td>
+        <td>${new Date(j.created_at*1000).toLocaleDateString()}</td>
+        <td><span class="badge ${j.completed?'badge-green':'badge-gold'}">
+          ${j.completed?'Complete':'Pending'}</span></td>
+      </tr>`).join("");
+  } catch(e) { console.error(e); }
+}
+
+async function loadReports() {
+  try {
+    const resp = await fetch("/v1/reports", {headers:{"x-license":LICENSE_KEY}});
+    const reports = await resp.json();
+    const tbody = document.getElementById("reports-table-body");
+    if (!reports.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--subtext);padding:24px">No reports yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = reports.reverse().map(r => `
+      <tr>
+        <td><code style="font-size:12px">${r.job_id}</code></td>
+        <td>${r.source} → ${r.target}</td>
+        <td>${fmt(r.transferred||0)}</td>
+        <td>${(r.verification_rate_pct||0).toFixed(2)}%</td>
+        <td><span class="badge ${r.failed_watermark>0?'badge-red':'badge-green'}">
+          ${r.failed_watermark||0}</span></td>
+        <td>${(r.bandwidth_savings_x||0).toFixed(2)}× savings</td>
+        <td>${r.completed_at ? new Date(r.completed_at).toLocaleDateString() : "—"}</td>
+      </tr>`).join("");
+  } catch(e) { console.error(e); }
+}
+
+async function loadUsage() {
+  try {
+    const resp = await fetch("/v1/usage", {headers:{"x-license":LICENSE_KEY}});
+    const u = await resp.json();
+    document.getElementById("u-plan").textContent = u.plan.toUpperCase();
+    document.getElementById("u-used").textContent = fmt(u.dwv_used);
+    document.getElementById("u-limit").textContent =
+      u.dwv_limit > 0 ? `of ${fmt(u.dwv_limit)} limit` : "Unlimited";
+    document.getElementById("u-pct").textContent = u.usage_pct.toFixed(1) + "%";
+    const bar = document.getElementById("u-bar");
+    bar.style.width = Math.min(u.usage_pct, 100) + "%";
+    if (u.usage_pct > 90) bar.classList.add("danger");
+  } catch(e) { console.error(e); }
+}
+
+async function createJob() {
+  const srcType = document.getElementById("srcType").value;
+  const tgtType = document.getElementById("tgtType").value;
+  const source = getFieldValues("srcFields", srcType);
+  const target = getFieldValues("tgtFields", tgtType);
+  const mode = document.getElementById("jobMode").value;
+  const batchSize = parseInt(document.getElementById("batchSize").value) || 256;
+
+  try {
+    const resp = await fetch("/v1/jobs", {
+      method: "POST",
+      headers: {"Content-Type":"application/json","x-license":LICENSE_KEY},
+      body: JSON.stringify({license_key: LICENSE_KEY, source, target, mode, batch_size: batchSize})
+    });
+    const job = await resp.json();
+
+    document.getElementById("d-jobid").textContent = job.job_id;
+    document.getElementById("d-jobid2").textContent = job.job_id;
+
+    const config = {
+      job_id: job.job_id,
+      license_key: LICENSE_KEY,
+      source, target, mode,
+      batch_size: batchSize,
+      resume: true
+    };
+
+    document.getElementById("configJson").textContent = JSON.stringify(config, null, 2);
+    document.getElementById("configOutput").classList.remove("hidden");
+    document.getElementById("jobAlert").innerHTML =
+      `<div class="alert alert-success">✓ Job ${job.job_id} created. Download config below or use your license key with the Docker agent.</div>`;
+  } catch(e) {
+    document.getElementById("jobAlert").innerHTML =
+      `<div class="alert alert-error">Error: ${e.message}</div>`;
+  }
+}
+
+function copyConfig() {
+  navigator.clipboard.writeText(document.getElementById("configJson").textContent);
+}
+function copyDocker() {
+  navigator.clipboard.writeText(document.getElementById("dockerCmd").innerText);
+}
+function copyK8s() {
+  navigator.clipboard.writeText(document.getElementById("k8sCmd").innerText);
+}
+function copyPython() {
+  navigator.clipboard.writeText(document.getElementById("pythonCmd").innerText);
+}
+
+// Init
+updateSourceFields();
+updateTargetFields();
+</script>
+</body>
+</html>

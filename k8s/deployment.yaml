@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vectorbridge
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vectorbridge-agent
+  namespace: vectorbridge
+  labels:
+    app: vectorbridge-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vectorbridge-agent
+  template:
+    metadata:
+      labels:
+        app: vectorbridge-agent
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: vectorbridge-agent
+          image: vectorbridge/agent:latest
+          imagePullPolicy: Always
+          env:
+            - name: VB_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vectorbridge-secret
+                  key: VB_LICENSE_KEY
+            - name: VB_JOB_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vectorbridge-secret
+                  key: VB_JOB_ID
+            # Poll interval in seconds (0 = run once and exit)
+            - name: VB_POLL_SECONDS
+              value: "3600"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import vectorbridge; print('ok')"]
+            initialDelaySeconds: 10
+            periodSeconds: 60
+          volumeMounts:
+            - name: checkpoint-storage
+              mountPath: /.vectorbridge
+      volumes:
+        - name: checkpoint-storage
+          emptyDir: {}   # swap for PVC in production
+
+---
+# For one-time migration jobs use a Kubernetes Job instead of Deployment
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vectorbridge-migration-job
+  namespace: vectorbridge
+spec:
+  ttlSecondsAfterFinished: 86400   # clean up after 24h
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: vectorbridge-agent
+          image: vectorbridge/agent:latest
+          env:
+            - name: VB_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vectorbridge-secret
+                  key: VB_LICENSE_KEY
+            - name: VB_JOB_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vectorbridge-secret
+                  key: VB_JOB_ID
+            - name: VB_POLL_SECONDS
+              value: "0"    # run once
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"

@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+exclude benchmark/data/*
+exclude benchmark/results/*
+recursive-exclude benchmark *.npy *.json
+recursive-exclude tests __pycache__

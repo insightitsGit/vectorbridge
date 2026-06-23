@@ -1,0 +1,53 @@
+# US East (Virginia) — Source stack
+# ChromaDB + VectorBridge benchmark runner
+#
+# Deploy to Azure Container Instances (eastus region):
+#   az container create --resource-group vb-benchmark \
+#     --name vb-source --location eastus \
+#     --file docker-compose.source.yml
+
+version: "3.9"
+
+services:
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+      - CHROMA_SERVER_AUTH_PROVIDER=
+    volumes:
+      - chroma_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  benchmark:
+    image: python:3.11-slim
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    volumes:
+      - ./:/benchmark
+      - ./data:/benchmark/data
+      - ./results:/benchmark/results
+    working_dir: /benchmark
+    environment:
+      - TARGET_HOST=${TARGET_HOST}        # Germany Qdrant IP
+      - TARGET_PORT=${TARGET_PORT:-6333}
+      - LICENSE_KEY=${LICENSE_KEY:-vb_test}
+    command: >
+      bash -c "
+        pip install -q numpy chromadb qdrant-client &&
+        python generate_vectors.py &&
+        python load_source.py --host chromadb --port 8000 &&
+        python run_benchmark.py
+          --source-host chromadb --source-port 8000
+          --target-host $$TARGET_HOST --target-port $$TARGET_PORT
+          --license-key $$LICENSE_KEY
+      "
+
+volumes:
+  chroma_data:
