@@ -1,12 +1,12 @@
-# VectorBridge
+﻿# VectorBridge
 
-**Universal vector database migration — powered by CHORUS Fabric tensor transport.**
+**Universal vector database migration â€” powered by CHORUS Fabric tensor transport.**
 
-Move vectors between any two vector databases with 5.55× less bandwidth than HTTP/REST,
+Move vectors between any two vector databases with 5.55Ã— less bandwidth than HTTP/REST,
 built-in encryption, and post-migration semantic validation that proves correctness.
 
 ```bash
-pip install vectorbridge
+pip install insight-vector-bridge
 ```
 
 ---
@@ -15,16 +15,16 @@ pip install vectorbridge
 
 Every other migration tool sends your float32 vectors as JSON text over HTTP.
 That costs 33 MB per 1,000 vectors. It has no encryption, no integrity proof,
-and no way to detect if your distance metrics changed — causing silent query corruption.
+and no way to detect if your distance metrics changed â€” causing silent query corruption.
 
 VectorBridge fixes all three.
 
 ---
 
-## Live Benchmark — Real Azure Cross-Datacenter
+## Live Benchmark â€” Real Azure Cross-Datacenter
 
-> Measured June 2026 · Azure Container Instances · US East (Virginia) + US West (Washington)
-> 60,000 vectors · 1,536-dim float32 · 30 batches per region
+> Measured June 2026 Â· Azure Container Instances Â· US East (Virginia) + US West (Washington)
+> 60,000 vectors Â· 1,536-dim float32 Â· 30 batches per region
 
 | Format | Wire per 1K vecs | vs REST | Avg RTT (US East) | Avg RTT (US West) |
 |---|---|---|---|---|
@@ -34,7 +34,7 @@ VectorBridge fixes all three.
 | **CHORUS Fabric** | **6,019 KB** | **5.55x less** | **4,737 ms** | **2,859 ms** |
 
 **82% less bandwidth than REST.** 821 MB saved per 30,000 vectors.
-**4–5× faster per-batch RTT.** Zero cipher overhead — CHORUS matches raw binary speed.
+**4â€“5Ã— faster per-batch RTT.** Zero cipher overhead â€” CHORUS matches raw binary speed.
 **100% watermark verification.** 60/60 batches verified across both regions.
 
 Full benchmark logs: [`benchmark/results/`](benchmark/results/)
@@ -86,7 +86,7 @@ vectorbridge migrate \
   --target qdrant://localhost:6333/docs \
   --semantic-probes 200
 
-# Override metric mismatch (dangerous — use only if you know what you're doing)
+# Override metric mismatch (dangerous â€” use only if you know what you're doing)
 vectorbridge migrate \
   --source chromadb://./chroma_data/docs \
   --target qdrant://localhost:6333/docs \
@@ -124,12 +124,12 @@ vectors to JSON, it packs float32 arrays directly into an encrypted binary wire 
 V_enc = V_raw @ K
 ```
 
-`K` is a QR-decomposed orthogonal matrix — the cipher is a single matrix multiply,
+`K` is a QR-decomposed orthogonal matrix â€” the cipher is a single matrix multiply,
 the same operation every neural network already runs. Zero added latency.
 Each batch carries a rolling SHA-256 neural watermark for chain-of-custody proof.
 
-**Result:** 5.55× less bandwidth than REST. 2.33× less than gzip-compressed REST.
-23× faster serialization (24 ms vs 567 ms for JSON).
+**Result:** 5.55Ã— less bandwidth than REST. 2.33Ã— less than gzip-compressed REST.
+23Ã— faster serialization (24 ms vs 567 ms for JSON).
 
 *USPTO Provisional Patent No. 64/096,156*
 
@@ -158,7 +158,7 @@ MetricMismatchError:
 
 Byte checksums cannot prove search behavior is preserved. VectorBridge fires probe vectors
 against both source and target after migration, compares top-K neighbor IDs, and requires
-≥95% overlap before declaring success:
+â‰¥95% overlap before declaring success:
 
 ```python
 report = bridge.run(semantic_verify=True, semantic_probes=100, semantic_top_k=5)
@@ -201,13 +201,13 @@ VectorBridge is built for when that's not the case:
 
 | Scenario | Re-embed? | VectorBridge? |
 |---|---|---|
-| Switching DB vendors (Pinecone → Qdrant) | Maybe | Yes |
+| Switching DB vendors (Pinecone â†’ Qdrant) | Maybe | Yes |
 | Source documents deleted / GDPR erased | **No** | Yes |
 | Embedding model deprecated (API gone) | **No** | Yes |
 | Client-owned data you never had | **No** | Yes |
 | Disaster recovery / restore from backup | **No** | Yes |
 | Data residency compliance (EU data stays EU) | **No** | Yes |
-| Cost: 100M vectors × $0.0001/1K = $10,000 | **Maybe not** | Yes |
+| Cost: 100M vectors Ã— $0.0001/1K = $10,000 | **Maybe not** | Yes |
 
 ---
 
@@ -216,7 +216,7 @@ VectorBridge is built for when that's not the case:
 | Feature | VectorBridge | MING | Qdrant Docker Tool | Milvus VTS |
 |---|---|---|---|---|
 | Binary transport (not HTTP/REST) | **Yes** | No | No | No |
-| Bandwidth vs REST JSON | **5.55× less** | baseline | baseline | baseline |
+| Bandwidth vs REST JSON | **5.55Ã— less** | baseline | baseline | baseline |
 | Distance metric guard | **Yes** | No | No | No |
 | Semantic validation post-migration | **Yes** | No | No | No |
 | Per-batch watermark + audit log | **Yes** | No | No | No |
@@ -258,7 +258,7 @@ python benchmark/run_crossdc_benchmark.py \
 
 ## Pricing
 
-Based on DWV (Dimension-Weighted Vectors = vectors × dimensions × $0.000001):
+Based on DWV (Dimension-Weighted Vectors = vectors Ã— dimensions Ã— $0.000001):
 
 | Tier | Included DWV | Price | Approx Vectors (1536-dim) |
 |---|---|---|---|
@@ -271,9 +271,9 @@ Based on DWV (Dimension-Weighted Vectors = vectors × dimensions × $0.000001):
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT â€” see [LICENSE](LICENSE)
 
-Transport layer (CHORUS Fabric) is patent pending — USPTO Provisional No. 64/096,156.
+Transport layer (CHORUS Fabric) is patent pending â€” USPTO Provisional No. 64/096,156.
 Commercial use of the CHORUS wire format in other products requires a license.
 Contact: parvaamin@gmail.com
 
@@ -281,5 +281,5 @@ Contact: parvaamin@gmail.com
 
 ## Author
 
-**Amin Parva** — AI Solution Architect, Insight IT Solutions LLC
-parvaamin@gmail.com · insightits.com · github.com/insightitsGit
+**Amin Parva** â€” AI Solution Architect, Insight IT Solutions LLC
+parvaamin@gmail.com Â· insightits.com Â· github.com/insightitsGit

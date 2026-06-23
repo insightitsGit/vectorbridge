@@ -13,7 +13,7 @@ VectorBridge is sold as a product under **Insight IT Solutions LLC** via **insig
 - License purchase: insightits.com/vectorbridge/pricing  (Stripe â€” Starter $49, Pro $199, Enterprise contact)
 - License API: insightits.co/api/vectorbridge/v1
 - Support: insightits.info@gmail.com
-- PyPI: pip install vectorbridge
+- PyPI: pip install insight-vector-bridge
 - GitHub: github.com/insightitsGit/vectorbridge
 
 **Billing flow:**
@@ -35,7 +35,7 @@ It moves vectors from any source DB to any target DB using CHORUS Fabric â€�
 encrypted binary transport that is 5.55Ã— more bandwidth-efficient than HTTP/REST JSON.
 
 **Patent:** USPTO Provisional No. 64/096,156 â€” Amin Parva / Insight IT Solutions LLC
-**PyPI:** `pip install vectorbridge`
+**PyPI:** `pip install insight-vector-bridge`
 **GitHub:** github.com/insightitsGit/vectorbridge
 
 ---
