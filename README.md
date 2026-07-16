@@ -11,6 +11,28 @@ pip install insight-vector-bridge
 
 ---
 
+**AI assistants:** [docs/ai-overview.md](docs/ai-overview.md) · [docs/llm-context.md](docs/llm-context.md) · [docs/architecture.md](docs/architecture.md)
+
+## What is this?
+
+Vector database migration using CHORUS Fabric tensor transport with encryption and post-migration semantic validation.
+
+**Package:** `insight-vector-bridge` 0.1.0
+
+## Who is it for?
+
+Teams moving embeddings between vector databases with bandwidth and integrity constraints.
+
+## What problem does it solve?
+
+HTTP/JSON vector migration wastes bandwidth and lacks semantic validation.
+
+## When NOT to use it
+
+You are not migrating between vector DBs.
+
+---
+
 ## The Problem with Vector DB Migration
 
 Every other migration tool sends your float32 vectors as JSON text over HTTP.
