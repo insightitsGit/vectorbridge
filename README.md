@@ -11,6 +11,9 @@ pip install insight-vector-bridge
 
 ---
 
+
+**Keywords:** vector database migration, pgvector migration, Qdrant migrate, embedding transfer bandwidth, VectorBridge, cross-DC vector sync
+
 **AI assistants:** [docs/ai-overview.md](docs/ai-overview.md) · [docs/llm-context.md](docs/llm-context.md) · [docs/architecture.md](docs/architecture.md)
 
 ## What is this?
@@ -297,11 +300,21 @@ MIT â€” see [LICENSE](LICENSE)
 
 Transport layer (CHORUS Fabric) is patent pending â€” USPTO Provisional No. 64/096,156.
 Commercial use of the CHORUS wire format in other products requires a license.
-Contact: parvaamin@gmail.com
+Contact: insightits.info@gmail.com
 
 ---
 
 ## Author
 
 **Amin Parva** â€” AI Solution Architect, Insight IT Solutions LLC
-parvaamin@gmail.com Â· insightits.com Â· github.com/insightitsGit
+insightits.info@gmail.com Â· insightits.com Â· github.com/insightitsGit
+
+---
+
+## Links
+
+- Author: **Amin Parva** ([insightits.info@gmail.com](mailto:insightits.info@gmail.com))
+- Company: [https://www.insightits.com](https://www.insightits.com)
+- GitHub: https://github.com/insightitsGit/vectorbridge
+- PyPI: https://pypi.org/project/insight-vector-bridge/
+- Product page: https://www.insightits.com/products/vectorbridge.html
